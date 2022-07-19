@@ -10,37 +10,41 @@
 #include "helper.js"
 
 {
-    var doc;
-    try {
-        doc = app.activeDocument
-    } catch (e) {
-        doc = null;
+    var docs = app.documents;
+    var errMsg = "";
+    for (var i = 0; i < docs.length; i++) {
+        errMsg += solve(docs[i]);
     }
-    if (doc) {
-        //检查是否有同名文件在同目录
-        var fileUrl = doc.fullName.path + "/" + doc.name.replace(".psd", ".xlsx");
-        var excelFile = new File(fileUrl);
-        if (excelFile.exists) {
-            var dict = {};
-            var lines = getExcelLines(excelFile);
-            if (lines) {
-                //从第二行开始读
-                for (var i = 1, len = lines.length; i < len; i++) {
-                    var line = lines[i];
-                    if (line) {
-                        var txtData = new TextData(line);
-                        dict[txtData.position] = txtData;
-                    }
+    var msg = "处理完成"
+    if (errMsg) {
+        msg += "\n中间有错误：\n" + errMsg;
+    }
+    alert(msg);
+}
+
+
+function solve(doc) {
+    //检查是否有同名文件在同目录
+    var fileUrl = doc.fullName.path + "/" + doc.name.replace(".psd", ".xlsx");
+    var excelFile = new File(fileUrl);
+    if (excelFile.exists) {
+        var dict = {};
+        var lines = getExcelLines(excelFile);
+        if (lines) {
+            //从第二行开始读
+            for (var i = 1, len = lines.length; i < len; i++) {
+                var line = lines[i];
+                if (line) {
+                    var txtData = new TextData(line);
+                    dict[txtData.position] = txtData;
                 }
-                checkLayers(doc.layers, "", dict);
-                doc.save();
-                alert("处理完成");
             }
-        } else {
-            alert("无法找到excel文件：" + fileUrl)
+            checkLayers(doc.layers, "", dict);
+            doc.save();
+
         }
     } else {
-        alert("请先打开一个psd文档");
+        return "无法找到excel文件：" + fileUrl;
     }
 }
 
